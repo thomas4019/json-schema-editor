@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title></title>
+    <script src="https://fb.me/react-15.0.1.js"></script>
+    <script src="https://fb.me/react-dom-15.0.1.js"></script>
+    <script src="../dist/jsonschemaeditor.js"></script>
+  </head>
+  <body>
+    <h1>JSON Schema Editor Example</h1>
+    <div id="example"></div>
+    <br>
+    <button onclick="print()">Print Schema</button>
+
+    <script>
+        var product = {
+            "title": "Product",
+            "type": "object",
+            "properties": {
+                "id": {
+                    "description": "The unique identifier for a product",
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number",
+                    "minimum": 0,
+                    "exclusiveMinimum": true
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1,
+                    "uniqueItems": true
+                },
+                "dimensions": {
+                    "type": "object",
+                    "properties": {
+                        "length": {"type": "number"},
+                        "width": {"type": "number"},
+                        "height": {"type": "number"}
+                    },
+                    "required": ["length", "width", "height"]
+                },
+                "warehouseLocation": {
+                    "description": "Coordinates of the warehouse with the product",
+                    "$ref": "http://json-schema.org/geo"
+                }
+            },
+            "required": ["id", "name", "price"]
+        }
+
+        var element = document.getElementById('example');
+
+        var editor = new JSONSchemaEditor(element, {
+            startval: product
+        });
+
+        //expose the editor so we can access it later
+        window.schemaeditor = editor;
+
+        function print() {
+            console.log(window.schemaeditor.getValue());
+        }
+    </script>
+  </body>
+</html>
