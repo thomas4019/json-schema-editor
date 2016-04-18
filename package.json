@@ -23,7 +23,7 @@
     "build": "webpack"
   },
   "author": "Thomas Hansen <th4019@example.com> (http://thomashansen.me)",
-  "license": "ISC",
+  "license": "MIT",
   "standard": {
     "parser": "babel-eslint",
     "rules": {
