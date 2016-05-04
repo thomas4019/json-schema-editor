@@ -17,9 +17,15 @@ JSONSchemaEditor.prototype = {
 		var data = this.options.startval || {};
 
 		this.react = ReactDOM.render(
-			<SchemaObject data={data}/>,
+			<SchemaObject onChange={this.onChange} data={data}/>,
 			self.element
 		);
+		this.callbacks = {};
+	},
+	on: function(event, callback) {
+		this.react.on(event, callback);
+	},
+	onChange: function() {
 	},
 	getValue: function() {
 		return this.react.export();
@@ -27,7 +33,7 @@ JSONSchemaEditor.prototype = {
 	setValue: function(data) {
 		var self = this;
 		this.react = ReactDOM.render(
-			<SchemaObject data={data}/>,
+			<SchemaObject onChange={this.onChange} data={data}/>,
 			self.element
 		);
 	}
@@ -39,20 +45,49 @@ var shortNumberStyle = {
 
 var SchemaString = React.createClass({
 	getInitialState: function() {
-		return this.props.data;
+		var state = this.props.data;
+		state.hasEnum = !!state.enum;
+		return state
+	},
+	componentDidUpdate: function() {
+		this.props.onChange();
 	},
 	export: function() {
 		return {
 			type: 'string',
 			format: this.state.format,
-			pattern: this.state.pattern
+			pattern: !!this.state.pattern ? this.state.pattern : undefined,
+			enum: this.state.enum
 		};
 	},
 	change: function(event) {
 		this.state[event.target.name] = event.target.value;
 		this.setState(this.state);
 	},
+	changeBool: function(event) {
+		this.state[event.target.name] = event.target.checked;
+		this.setState(this.state);
+	},
+	changeEnum: function(event) {
+		var arr = event.target.value.split('\n');
+		if (arr.length == 1 && !arr[0]) {
+			arr = undefined;
+		}
+		this.state[event.target.name] = arr
+		this.setState(this.state);
+	},
 	render: function() {
+		var settings;
+		if (this.state.hasEnum) {
+			settings = <div>
+						<label style={{display: 'block'}} htmlFor="enum">Enum (one value per line):</label>
+						<textarea onChange={this.changeEnum} name="enum" value={(this.state.enum||[]).join('\n')} />
+					  </div>
+		} else {
+			settings = <span>
+				Pattern: <input name="pattern" type="text" value={this.state.pattern} onChange={this.change} />
+				</span>
+		}
 		return (
 			<div>
 				Format: 
@@ -73,7 +108,8 @@ var SchemaString = React.createClass({
 					<option value="url">url</option>
 					<option value="week">week</option>
 				</select>
-				Pattern: <input name="pattern" type="text" value={this.state.pattern} onChange={this.change} />
+				Enum: <input name="hasEnum" type="checkbox" checked={this.state.hasEnum} onChange={this.changeBool}  />
+				{settings}
 			</div>
 		);
 	}
@@ -82,7 +118,8 @@ var SchemaString = React.createClass({
 var SchemaBoolean = React.createClass({
 	export: function() {
 		return {
-			type: 'boolean'
+			type: 'boolean',
+			format: 'checkbox'
 		}
 	},
 	render() {
@@ -96,6 +133,9 @@ var SchemaNumber = React.createClass({
 	getInitialState: function() {
 		return this.props.data;
 	},
+	componentDidUpdate: function() {
+		this.props.onChange();
+	},
 	change: function(event) {
 		this.state[event.target.name] = event.target.value;
 		this.setState(this.state);
@@ -103,6 +143,7 @@ var SchemaNumber = React.createClass({
 	export: function() {
 		var o = JSON.parse(JSON.stringify(this.state));
 		o.type = 'number';
+		delete o.name;
 		return o;
 	},
 	render: function() {
@@ -116,13 +157,13 @@ var SchemaNumber = React.createClass({
 });
 
 
-var mapping = function(name, data) {
+var mapping = function(name, data, changeHandler) {
 	return {
-		string: <SchemaString ref={name} data={data} />,
-		number: <SchemaNumber ref={name} data={data} />,
-		array: <SchemaArray ref={name} data={data}/>,
-		object: <SchemaObject ref={name} data={data}/>,
-		boolean: <SchemaBoolean ref={name} data={data}/>,
+		string: <SchemaString onChange={changeHandler} ref={name} data={data} />,
+		number: <SchemaNumber onChange={changeHandler} ref={name} data={data} />,
+		array: <SchemaArray onChange={changeHandler} ref={name} data={data}/>,
+		object: <SchemaObject onChange={changeHandler} ref={name} data={data}/>,
+		boolean: <SchemaBoolean onChange={changeHandler} ref={name} data={data}/>,
 	}[data.type];
 };
 
@@ -131,6 +172,7 @@ var SchemaArray = React.createClass({
 		return this.props.data;
 	},
 	change: function(event) {
+		console.log(this.state)
 		if (event.target.type == 'checkbox') {
 			this.state[event.target.name] = event.target.checked;
 		}
@@ -143,13 +185,21 @@ var SchemaArray = React.createClass({
 		this.setState(this.state);
 	},
 	export: function() {
+		//console.log(this.refs.items.state)
 		return {
 			items: this.refs['items'].export(),
 			minItems: this.state.minItems,
 			maxItems: this.state.maxItems,
 			uniqueItems: (this.state.uniqueItems ? true : undefined),
+			format: this.state.format,
 			type: 'array'
 		};
+	},
+	componentDidUpdate: function() {
+		this.onChange();
+	},
+	onChange: function() {
+		this.props.onChange();
 	},
  	render: function() {
 		var self = this;
@@ -158,7 +208,7 @@ var SchemaArray = React.createClass({
 			paddingTop: '4px',
 		};
 		this.state.items = this.state.items || {type: 'string'};
-		var optionForm = mapping('items', this.state.items);
+		var optionForm = mapping('items', this.state.items, this.onChange);
 		return (
 			<div>
 				Items Type:
@@ -172,6 +222,14 @@ var SchemaArray = React.createClass({
 				minItems:  <input name="minItems" style={shortNumberStyle} type="number" onChange={self.change} value={self.state.minItems}  />
 				maxItems:  <input name="maxItems" style={shortNumberStyle} type="number" onChange={self.change} value={self.state.maxItems}  />
 				uniqueItems:  <input name="uniqueItems" type="checkbox" onChange={self.change} checked={self.state.uniqueItems}  />
+				Format: 
+				<select name="format" onChange={this.change} value={this.state.format}>
+					<option value=""></option>
+					<option value="table">table</option>
+					<option value="checkbox">checkbox</option>
+					<option value="select">select</option>
+					<option value="tabs">tabs</option>
+				</select>
 				<div style={optionFormStyle}>
 					{optionForm}
 				</div>
@@ -182,18 +240,23 @@ var SchemaArray = React.createClass({
 
 var SchemaObject = React.createClass({
 	getInitialState: function() {
-		var self = this;
-		var data = this.props.data;
-		data.properties = data.properties || { '': { type: 'string' } };
+		return this.propsToState(this.props)
+	},
+	propsToState: function(props) {
+		var data = props.data;
+		data.properties = data.properties || {}
 		data.required = data.required || [];
 		data.propertyNames = [];
 		// convert from object to array
 		data.properties = Object.keys(data.properties).map(function(name) {
 			data.propertyNames.push(name);
-			var item = self.props.data.properties[name];
+			var item = data.properties[name];
 			return item;
 		})
-		return data;
+		return data
+	},
+	componentWillReceiveProps: function(newProps) {
+		this.setState(this.propsToState(newProps))
 	},
 	deleteItem: function(event) {
 		var i = event.target.parentElement.dataset.index;
@@ -223,6 +286,17 @@ var SchemaObject = React.createClass({
 		this.state[event.target.name] = event.target.checked;
 		this.setState(this.state);
 	},
+	changeText: function(event) {
+		this.state[event.target.name] = event.target.value;
+		this.setState(this.state);
+	},
+	onChange: function() {
+		this.props.onChange()
+		this.trigger('change');
+	},
+	componentDidUpdate: function() {
+		this.onChange();
+	},
 	add: function() {
 		this.state.properties.push({name: '', type: 'string'});
 		this.setState(this.state);
@@ -239,9 +313,26 @@ var SchemaObject = React.createClass({
 		return {
 			type: 'object',
 			additionalProperties: this.state.additionalProperties,
+			format: this.state.format,
 			properties: properties,
 			required: this.state.required.length ? this.state.required : undefined
 		};
+	},
+	on: function(event, callback) {
+		this.callbacks = this.callbacks || {};
+		this.callbacks[event] = this.callbacks[event] || [];
+		this.callbacks[event].push(callback);
+
+		return this;
+	},
+	trigger: function(event) {
+		if (this.callbacks && this.callbacks[event] && this.callbacks[event].length) {
+			for (var i=0; i<this.callbacks[event].length; i++) {
+				this.callbacks[event][i]();
+			}
+		}
+
+		return this;
 	},
 	render: function() {
 		var self = this;
@@ -277,8 +368,8 @@ var SchemaObject = React.createClass({
 
 			{this.state.properties.map(function(value, index) {
 			var name = self.state.propertyNames[index]
-
-			var optionForm = mapping('item' + index, self.state.properties[index]);
+			var copiedState = JSON.parse(JSON.stringify(self.state.properties[index]));
+ 			var optionForm = mapping('item' + index, copiedState, self.onChange);
 			return <div data-index={index} style={fieldStyle} key={index}>
 				<input name="field" type="string" onChange={self.changeItem} value={name} />
 				<select style={typeSelectStyle} name="type" onChange={self.changeItem} value={value.type}>
@@ -297,6 +388,12 @@ var SchemaObject = React.createClass({
 			})}
 			<div>
 			Allow additional properties: <input name="additionalProperties" type="checkbox" onChange={self.change} checked={self.state.additionalProperties} />
+			Format: 
+				<select name="format" onChange={this.changeText} value={this.state.format}>
+					<option value=""></option>
+					<option value="grid">grid</option>
+					<option value="schema">schema</option>
+				</select>
 			</div>
 
 			<button onClick={self.add}>Add another field</button>

@@ -64,14 +64,19 @@
 			var self = this;
 			var data = this.options.startval || {};
 
-			this.react = ReactDOM.render(React.createElement(SchemaObject, { data: data }), self.element);
+			this.react = ReactDOM.render(React.createElement(SchemaObject, { onChange: this.onChange, data: data }), self.element);
+			this.callbacks = {};
 		},
+		on: function on(event, callback) {
+			this.react.on(event, callback);
+		},
+		onChange: function onChange() {},
 		getValue: function getValue() {
 			return this.react.export();
 		},
 		setValue: function setValue(data) {
 			var self = this;
-			this.react = ReactDOM.render(React.createElement(SchemaObject, { data: data }), self.element);
+			this.react = ReactDOM.render(React.createElement(SchemaObject, { onChange: this.onChange, data: data }), self.element);
 		}
 	};
 
@@ -83,21 +88,58 @@
 		displayName: 'SchemaString',
 
 		getInitialState: function getInitialState() {
-			//this.props.data.format = this.props.data.format || 'text';
-			return this.props.data;
+			var state = this.props.data;
+			state.hasEnum = !!state.enum;
+			return state;
+		},
+		componentDidUpdate: function componentDidUpdate() {
+			this.props.onChange();
 		},
 		export: function _export() {
 			return {
 				type: 'string',
 				format: this.state.format,
-				pattern: this.state.pattern
+				pattern: !!this.state.pattern ? this.state.pattern : undefined,
+				enum: this.state.enum
 			};
 		},
 		change: function change(event) {
 			this.state[event.target.name] = event.target.value;
 			this.setState(this.state);
 		},
+		changeBool: function changeBool(event) {
+			this.state[event.target.name] = event.target.checked;
+			this.setState(this.state);
+		},
+		changeEnum: function changeEnum(event) {
+			var arr = event.target.value.split('\n');
+			if (arr.length == 1 && !arr[0]) {
+				arr = undefined;
+			}
+			this.state[event.target.name] = arr;
+			this.setState(this.state);
+		},
 		render: function render() {
+			var settings;
+			if (this.state.hasEnum) {
+				settings = React.createElement(
+					'div',
+					null,
+					React.createElement(
+						'label',
+						{ style: { display: 'block' }, htmlFor: 'enum' },
+						'Enum (one value per line):'
+					),
+					React.createElement('textarea', { onChange: this.changeEnum, name: 'enum', value: (this.state.enum || []).join('\n') })
+				);
+			} else {
+				settings = React.createElement(
+					'span',
+					null,
+					'Pattern: ',
+					React.createElement('input', { name: 'pattern', type: 'text', value: this.state.pattern, onChange: this.change })
+				);
+			}
 			return React.createElement(
 				'div',
 				null,
@@ -177,8 +219,9 @@
 						'week'
 					)
 				),
-				'Pattern: ',
-				React.createElement('input', { name: 'pattern', type: 'text', value: this.state.pattern, onChange: this.change })
+				'Enum: ',
+				React.createElement('input', { name: 'hasEnum', type: 'checkbox', checked: this.state.hasEnum, onChange: this.changeBool }),
+				settings
 			);
 		}
 	});
@@ -188,7 +231,8 @@
 
 		export: function _export() {
 			return {
-				type: 'boolean'
+				type: 'boolean',
+				format: 'checkbox'
 			};
 		},
 		render: function render() {
@@ -202,6 +246,9 @@
 		getInitialState: function getInitialState() {
 			return this.props.data;
 		},
+		componentDidUpdate: function componentDidUpdate() {
+			this.props.onChange();
+		},
 		change: function change(event) {
 			this.state[event.target.name] = event.target.value;
 			this.setState(this.state);
@@ -209,6 +256,7 @@
 		export: function _export() {
 			var o = JSON.parse(JSON.stringify(this.state));
 			o.type = 'number';
+			delete o.name;
 			return o;
 		},
 		render: function render() {
@@ -223,13 +271,13 @@
 		}
 	});
 
-	var mapping = function mapping(name, data) {
+	var mapping = function mapping(name, data, changeHandler) {
 		return {
-			string: React.createElement(SchemaString, { ref: name, data: data }),
-			number: React.createElement(SchemaNumber, { ref: name, data: data }),
-			array: React.createElement(SchemaArray, { ref: name, data: data }),
-			object: React.createElement(SchemaObject, { ref: name, data: data }),
-			boolean: React.createElement(SchemaBoolean, { ref: name, data: data })
+			string: React.createElement(SchemaString, { onChange: changeHandler, ref: name, data: data }),
+			number: React.createElement(SchemaNumber, { onChange: changeHandler, ref: name, data: data }),
+			array: React.createElement(SchemaArray, { onChange: changeHandler, ref: name, data: data }),
+			object: React.createElement(SchemaObject, { onChange: changeHandler, ref: name, data: data }),
+			boolean: React.createElement(SchemaBoolean, { onChange: changeHandler, ref: name, data: data })
 		}[data.type];
 	};
 
@@ -240,6 +288,7 @@
 			return this.props.data;
 		},
 		change: function change(event) {
+			console.log(this.state);
 			if (event.target.type == 'checkbox') {
 				this.state[event.target.name] = event.target.checked;
 			} else if (event.target.name == 'itemtype') {
@@ -250,13 +299,21 @@
 			this.setState(this.state);
 		},
 		export: function _export() {
+			//console.log(this.refs.items.state)
 			return {
 				items: this.refs['items'].export(),
 				minItems: this.state.minItems,
 				maxItems: this.state.maxItems,
 				uniqueItems: this.state.uniqueItems ? true : undefined,
+				format: this.state.format,
 				type: 'array'
 			};
+		},
+		componentDidUpdate: function componentDidUpdate() {
+			this.onChange();
+		},
+		onChange: function onChange() {
+			this.props.onChange();
 		},
 		render: function render() {
 			var self = this;
@@ -265,7 +322,7 @@
 				paddingTop: '4px'
 			};
 			this.state.items = this.state.items || { type: 'string' };
-			var optionForm = mapping('items', this.state.items);
+			var optionForm = mapping('items', this.state.items, this.onChange);
 			return React.createElement(
 				'div',
 				null,
@@ -305,6 +362,32 @@
 				React.createElement('input', { name: 'maxItems', style: shortNumberStyle, type: 'number', onChange: self.change, value: self.state.maxItems }),
 				'uniqueItems:  ',
 				React.createElement('input', { name: 'uniqueItems', type: 'checkbox', onChange: self.change, checked: self.state.uniqueItems }),
+				'Format:',
+				React.createElement(
+					'select',
+					{ name: 'format', onChange: this.change, value: this.state.format },
+					React.createElement('option', { value: '' }),
+					React.createElement(
+						'option',
+						{ value: 'table' },
+						'table'
+					),
+					React.createElement(
+						'option',
+						{ value: 'checkbox' },
+						'checkbox'
+					),
+					React.createElement(
+						'option',
+						{ value: 'select' },
+						'select'
+					),
+					React.createElement(
+						'option',
+						{ value: 'tabs' },
+						'tabs'
+					)
+				),
 				React.createElement(
 					'div',
 					{ style: optionFormStyle },
@@ -318,18 +401,23 @@
 		displayName: 'SchemaObject',
 
 		getInitialState: function getInitialState() {
-			var self = this;
-			var data = this.props.data;
-			data.properties = data.properties || { '': { type: 'string' } };
+			return this.propsToState(this.props);
+		},
+		propsToState: function propsToState(props) {
+			var data = props.data;
+			data.properties = data.properties || {};
 			data.required = data.required || [];
 			data.propertyNames = [];
 			// convert from object to array
 			data.properties = Object.keys(data.properties).map(function (name) {
 				data.propertyNames.push(name);
-				var item = self.props.data.properties[name];
+				var item = data.properties[name];
 				return item;
 			});
 			return data;
+		},
+		componentWillReceiveProps: function componentWillReceiveProps(newProps) {
+			this.setState(this.propsToState(newProps));
 		},
 		deleteItem: function deleteItem(event) {
 			var i = event.target.parentElement.dataset.index;
@@ -357,6 +445,17 @@
 			this.state[event.target.name] = event.target.checked;
 			this.setState(this.state);
 		},
+		changeText: function changeText(event) {
+			this.state[event.target.name] = event.target.value;
+			this.setState(this.state);
+		},
+		onChange: function onChange() {
+			this.props.onChange();
+			this.trigger('change');
+		},
+		componentDidUpdate: function componentDidUpdate() {
+			this.onChange();
+		},
 		add: function add() {
 			this.state.properties.push({ name: '', type: 'string' });
 			this.setState(this.state);
@@ -372,9 +471,26 @@
 			return {
 				type: 'object',
 				additionalProperties: this.state.additionalProperties,
+				format: this.state.format,
 				properties: properties,
 				required: this.state.required.length ? this.state.required : undefined
 			};
+		},
+		on: function on(event, callback) {
+			this.callbacks = this.callbacks || {};
+			this.callbacks[event] = this.callbacks[event] || [];
+			this.callbacks[event].push(callback);
+
+			return this;
+		},
+		trigger: function trigger(event) {
+			if (this.callbacks && this.callbacks[event] && this.callbacks[event].length) {
+				for (var i = 0; i < this.callbacks[event].length; i++) {
+					this.callbacks[event][i]();
+				}
+			}
+
+			return this;
 		},
 		render: function render() {
 			var self = this;
@@ -410,8 +526,8 @@
 				{ style: objectStyle },
 				this.state.properties.map(function (value, index) {
 					var name = self.state.propertyNames[index];
-
-					var optionForm = mapping('item' + index, self.state.properties[index]);
+					var copiedState = JSON.parse(JSON.stringify(self.state.properties[index]));
+					var optionForm = mapping('item' + index, copiedState, self.onChange);
 					return React.createElement(
 						'div',
 						{ 'data-index': index, style: fieldStyle, key: index },
@@ -467,7 +583,23 @@
 					'div',
 					null,
 					'Allow additional properties: ',
-					React.createElement('input', { name: 'additionalProperties', type: 'checkbox', onChange: self.change, checked: self.state.additionalProperties })
+					React.createElement('input', { name: 'additionalProperties', type: 'checkbox', onChange: self.change, checked: self.state.additionalProperties }),
+					'Format:',
+					React.createElement(
+						'select',
+						{ name: 'format', onChange: this.changeText, value: this.state.format },
+						React.createElement('option', { value: '' }),
+						React.createElement(
+							'option',
+							{ value: 'grid' },
+							'grid'
+						),
+						React.createElement(
+							'option',
+							{ value: 'schema' },
+							'schema'
+						)
+					)
 				),
 				React.createElement(
 					'button',
