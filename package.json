@@ -2,7 +2,7 @@
   "name": "json-schema-editor",
   "version": "0.2.0",
   "description": "React based editor for JSON Schemas",
-  "main": "src/index.js",
+  "main": "src/index.jsx",
   "dependencies": {},
   "devDependencies": {
     "babel-core": "^6.7.4",
