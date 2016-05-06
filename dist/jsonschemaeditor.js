@@ -421,6 +421,10 @@
 		},
 		deleteItem: function deleteItem(event) {
 			var i = event.target.parentElement.dataset.index;
+			var requiredIndex = this.state.required.indexOf(this.state.propertyNames[i]);
+			if (requiredIndex !== -1) {
+				this.state.required.splice(requiredIndex, 1);
+			}
 			this.state.properties.splice(i, 1);
 			this.state.propertyNames.splice(i, 1);
 			this.setState(this.state);
@@ -610,7 +614,7 @@
 		}
 	});
 
-	module.exports = window.JSONSchemaEditor;
+	if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') module.exports = window.JSONSchemaEditor;
 
 /***/ }
 /******/ ]);
