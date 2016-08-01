@@ -6,7 +6,7 @@ Generates HTML for creating and modifying [json schemas](http://json-schema.org)
 
 ## Getting started
 --------------------
-1. Make sure React is loaded on your page. Read more at [facebook/react](https://github.com/facebook/react).
+1. Make sure React is loaded on your page. Read more at [facebook/react](https://github.com/facebook/react#installation).
 
 2. Include the JSON Schema Editor javascript file.
 
