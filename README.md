@@ -8,7 +8,7 @@ Generates HTML for creating and modifying [json schemas](http://json-schema.org)
 --------------------
 1. Make sure React is loaded on your page. Read more at [facebook/react](https://github.com/facebook/react#installation).
 
-2. Include the JSON Schema Editor javascript file.
+2. Include JSON Schema Editor
 
   - Using npm: 
   
@@ -20,13 +20,13 @@ Generates HTML for creating and modifying [json schemas](http://json-schema.org)
   var JSONSchemaEditor = require('json-schema-editor');
   ```
   
-  - Or with old-fashioned style:
+  - Old-fashioned style:
   
   ```html
   <script src="node_modules/dist/jsonschemaeditor.js"></script>
   ```
 
-3. Add an element to your page to contain the editor.
+3. Add an element to your page to contain the editor
 
 ```html
 <div id="container"></div>
@@ -50,6 +50,7 @@ editor.getValue();
 ## Example
 -------------
 Here is what the [product schema](http://json-schema.org/example1.html) example looks like rendered.
+
 ![JSON Schema Editor Example](https://cloud.githubusercontent.com/assets/406149/14623022/a1a3c96e-058b-11e6-9cef-0b61ff242e8d.png)
 
 ## Todo
