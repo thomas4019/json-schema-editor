@@ -42,7 +42,7 @@
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ function(module, exports) {
+/***/ (function(module, exports) {
 
 	'use strict';
 
@@ -250,7 +250,7 @@
 			this.props.onChange();
 		},
 		change: function change(event) {
-			this.state[event.target.name] = event.target.value;
+			this.state[event.target.name] = parseInt(event.target.value);
 			this.setState(this.state);
 		},
 		export: function _export() {
@@ -417,7 +417,9 @@
 			return data;
 		},
 		componentWillReceiveProps: function componentWillReceiveProps(newProps) {
-			this.setState(this.propsToState(newProps));
+			if (!this.state) {
+				this.setState(this.propsToState(newProps));
+			}
 		},
 		deleteItem: function deleteItem(event) {
 			var i = event.target.parentElement.dataset.index;
@@ -470,7 +472,7 @@
 			Object.keys(self.state.properties).forEach(function (index) {
 				//var name = self.state.properties[index].name;
 				var name = self.state.propertyNames[index];
-				if (typeof self.refs['item' + index] != 'undefined' && name.length > 0) properties[name] = self.refs['item' + index].export();
+				if (typeof self.refs['item' + index] != 'undefined' && name && name.length > 0) properties[name] = self.refs['item' + index].export();
 			});
 			return {
 				type: 'object',
@@ -616,5 +618,5 @@
 
 	if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') module.exports = window.JSONSchemaEditor;
 
-/***/ }
+/***/ })
 /******/ ]);

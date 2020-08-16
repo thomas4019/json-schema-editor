@@ -14,9 +14,9 @@
     "react-redux": "^4.4.1",
     "webpack": "^1.12.14"
   },
-  "repository" : {
-    "type" : "git",
-    "url" : "https://github.com/thomas4019/json-schema-editor.git"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thomas4019/json-schema-editor.git"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

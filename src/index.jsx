@@ -137,7 +137,7 @@ var SchemaNumber = React.createClass({
 		this.props.onChange();
 	},
 	change: function(event) {
-		this.state[event.target.name] = event.target.value;
+		this.state[event.target.name] = parseInt(event.target.value);
 		this.setState(this.state);
 	},
 	export: function() {
@@ -256,7 +256,9 @@ var SchemaObject = React.createClass({
 		return data
 	},
 	componentWillReceiveProps: function(newProps) {
-		this.setState(this.propsToState(newProps))
+		if (!this.state) {
+			this.setState(this.propsToState(newProps))
+		}
 	},
 	deleteItem: function(event) {
 		var i = event.target.parentElement.dataset.index;
@@ -311,7 +313,7 @@ var SchemaObject = React.createClass({
 		Object.keys(self.state.properties).forEach(function(index) {
 			//var name = self.state.properties[index].name;
 			var name = self.state.propertyNames[index];
-			if (typeof self.refs['item'+index] != 'undefined' && name.length > 0)
+			if (typeof self.refs['item'+index] != 'undefined' && name && name.length > 0)
 				properties[name] = self.refs['item'+index].export();
 		});
 		return {
