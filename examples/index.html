@@ -11,6 +11,7 @@
     <div id="example"></div>
     <br>
     <button onclick="print()">Print Schema</button>
+    <button onclick="update()">Update</button>
 
     <script>
         var product = {
@@ -22,7 +23,8 @@
                     "type": "number"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "test description",
                 },
                 "price": {
                     "type": "number",
@@ -65,6 +67,18 @@
 
         function print() {
             console.log(window.schemaeditor.getValue());
+        }
+
+        function update() {
+            console.log(window.schemaeditor.setValue({
+                "type": "object",
+                "properties": {
+                    "test": {
+                        "description": "The unique identifier for a product",
+                        "type": "string"
+                    }
+                }
+            }));
         }
     </script>
   </body>

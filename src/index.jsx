@@ -49,12 +49,19 @@ var SchemaString = React.createClass({
 		state.hasEnum = !!state.enum;
 		return state
 	},
+	componentWillReceiveProps: function(newProps) {
+		if (newProps.data.description) {
+			this.state.description = newProps.data.description;
+		}
+		this.setState(this.state);
+	},
 	componentDidUpdate: function() {
 		this.props.onChange();
 	},
 	export: function() {
 		return {
 			type: 'string',
+			description: this.state.description,
 			format: this.state.format,
 			pattern: !!this.state.pattern ? this.state.pattern : undefined,
 			enum: this.state.enum
@@ -85,7 +92,7 @@ var SchemaString = React.createClass({
 					  </div>
 		} else {
 			settings = <span>
-				Pattern: <input name="pattern" type="text" value={this.state.pattern} onChange={this.change} />
+				<input placeholder="pattern" name="pattern" type="text" value={this.state.pattern} onChange={this.change} />
 				</span>
 		}
 		return (
@@ -116,11 +123,21 @@ var SchemaString = React.createClass({
 });
 
 var SchemaBoolean = React.createClass({
+	getInitialState: function() {
+		return this.props.data;
+	},
 	export: function() {
 		return {
 			type: 'boolean',
-			format: 'checkbox'
+			format: 'checkbox',
+			description: this.state.description
 		}
+	},
+	componentWillReceiveProps: function(newProps) {
+		if (newProps.data.description) {
+			this.state.description = newProps.data.description;
+		}
+		this.setState(this.state);
 	},
 	render() {
 		return (
@@ -138,6 +155,12 @@ var SchemaNumber = React.createClass({
 	},
 	change: function(event) {
 		this.state[event.target.name] = parseInt(event.target.value);
+		this.setState(this.state);
+	},
+	componentWillReceiveProps: function(newProps) {
+		if (newProps.data.description) {
+			this.state.description = newProps.data.description;
+		}
 		this.setState(this.state);
 	},
 	export: function() {
@@ -192,11 +215,18 @@ var SchemaArray = React.createClass({
 			maxItems: this.state.maxItems,
 			uniqueItems: (this.state.uniqueItems ? true : undefined),
 			format: this.state.format,
+			description: this.state.description,
 			type: 'array'
 		};
 	},
 	componentDidUpdate: function() {
 		this.onChange();
+	},
+	componentWillReceiveProps: function(newProps) {
+		if (newProps.data.description) {
+			this.state.description = newProps.data.description;
+		}
+		this.setState(this.state);
 	},
 	onChange: function() {
 		this.props.onChange();
@@ -256,8 +286,12 @@ var SchemaObject = React.createClass({
 		return data
 	},
 	componentWillReceiveProps: function(newProps) {
-		if (!this.state) {
+		if (!this.state || this.state.properties.length === 0) {
 			this.setState(this.propsToState(newProps))
+		}
+		if (newProps.data.description) {
+			this.state.description = newProps.data.description;
+			this.setState(this.state);
 		}
 	},
 	deleteItem: function(event) {
@@ -276,6 +310,8 @@ var SchemaObject = React.createClass({
 			this.state.properties[i].type = event.target.value;
 		} else if (event.target.name == 'field') {
 			this.state.propertyNames[i] = event.target.value;
+		} else if (event.target.name == 'description') {
+			this.state.properties[i].description = event.target.value;
 		}
 		this.setState(this.state);
 	},
@@ -318,6 +354,7 @@ var SchemaObject = React.createClass({
 		});
 		return {
 			type: 'object',
+			description: this.state.description,
 			additionalProperties: this.state.additionalProperties,
 			format: this.state.format,
 			properties: properties,
@@ -342,7 +379,7 @@ var SchemaObject = React.createClass({
 	},
 	render: function() {
 		var self = this;
-		
+
 		var optionFormStyle = {
 			paddingLeft: '25px',
 			paddingTop: '4px',
@@ -363,6 +400,10 @@ var SchemaObject = React.createClass({
 		}
 		var typeSelectStyle = {
 			marginLeft: '5px'
+		}
+		var descriptionStyle = {
+			marginLeft: '6px',
+			width: '350px'
 		}
 		var deletePropStyle = {
 			border: '1px solid black',
@@ -385,6 +426,7 @@ var SchemaObject = React.createClass({
 					<option value="object">object</option>
 					<option value="boolean">boolean</option>
 				</select>
+				<input style={descriptionStyle} placeholder="description" name="description" type="text" value={value.description} onChange={self.changeItem} />
 				<span style={requiredIcon}>*</span><input name={name} type="checkbox" onChange={self.changeRequired} checked={self.state.required.indexOf(name) != -1} />
 				<span onClick={self.deleteItem} style={deletePropStyle}>x</span>
 				<div style={optionFormStyle}>

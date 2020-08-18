@@ -92,12 +92,19 @@
 			state.hasEnum = !!state.enum;
 			return state;
 		},
+		componentWillReceiveProps: function componentWillReceiveProps(newProps) {
+			if (newProps.data.description) {
+				this.state.description = newProps.data.description;
+			}
+			this.setState(this.state);
+		},
 		componentDidUpdate: function componentDidUpdate() {
 			this.props.onChange();
 		},
 		export: function _export() {
 			return {
 				type: 'string',
+				description: this.state.description,
 				format: this.state.format,
 				pattern: !!this.state.pattern ? this.state.pattern : undefined,
 				enum: this.state.enum
@@ -136,8 +143,7 @@
 				settings = React.createElement(
 					'span',
 					null,
-					'Pattern: ',
-					React.createElement('input', { name: 'pattern', type: 'text', value: this.state.pattern, onChange: this.change })
+					React.createElement('input', { placeholder: 'pattern', name: 'pattern', type: 'text', value: this.state.pattern, onChange: this.change })
 				);
 			}
 			return React.createElement(
@@ -229,11 +235,21 @@
 	var SchemaBoolean = React.createClass({
 		displayName: 'SchemaBoolean',
 
+		getInitialState: function getInitialState() {
+			return this.props.data;
+		},
 		export: function _export() {
 			return {
 				type: 'boolean',
-				format: 'checkbox'
+				format: 'checkbox',
+				description: this.state.description
 			};
+		},
+		componentWillReceiveProps: function componentWillReceiveProps(newProps) {
+			if (newProps.data.description) {
+				this.state.description = newProps.data.description;
+			}
+			this.setState(this.state);
 		},
 		render: function render() {
 			return React.createElement('div', null);
@@ -251,6 +267,12 @@
 		},
 		change: function change(event) {
 			this.state[event.target.name] = parseInt(event.target.value);
+			this.setState(this.state);
+		},
+		componentWillReceiveProps: function componentWillReceiveProps(newProps) {
+			if (newProps.data.description) {
+				this.state.description = newProps.data.description;
+			}
 			this.setState(this.state);
 		},
 		export: function _export() {
@@ -306,11 +328,18 @@
 				maxItems: this.state.maxItems,
 				uniqueItems: this.state.uniqueItems ? true : undefined,
 				format: this.state.format,
+				description: this.state.description,
 				type: 'array'
 			};
 		},
 		componentDidUpdate: function componentDidUpdate() {
 			this.onChange();
+		},
+		componentWillReceiveProps: function componentWillReceiveProps(newProps) {
+			if (newProps.data.description) {
+				this.state.description = newProps.data.description;
+			}
+			this.setState(this.state);
 		},
 		onChange: function onChange() {
 			this.props.onChange();
@@ -417,8 +446,12 @@
 			return data;
 		},
 		componentWillReceiveProps: function componentWillReceiveProps(newProps) {
-			if (!this.state) {
+			if (!this.state || this.state.properties.length === 0) {
 				this.setState(this.propsToState(newProps));
+			}
+			if (newProps.data.description) {
+				this.state.description = newProps.data.description;
+				this.setState(this.state);
 			}
 		},
 		deleteItem: function deleteItem(event) {
@@ -437,6 +470,8 @@
 				this.state.properties[i].type = event.target.value;
 			} else if (event.target.name == 'field') {
 				this.state.propertyNames[i] = event.target.value;
+			} else if (event.target.name == 'description') {
+				this.state.properties[i].description = event.target.value;
 			}
 			this.setState(this.state);
 		},
@@ -476,6 +511,7 @@
 			});
 			return {
 				type: 'object',
+				description: this.state.description,
 				additionalProperties: this.state.additionalProperties,
 				format: this.state.format,
 				properties: properties,
@@ -522,6 +558,10 @@
 			var typeSelectStyle = {
 				marginLeft: '5px'
 			};
+			var descriptionStyle = {
+				marginLeft: '6px',
+				width: '350px'
+			};
 			var deletePropStyle = {
 				border: '1px solid black',
 				padding: '0px 4px 0px 4px',
@@ -567,6 +607,7 @@
 								'boolean'
 							)
 						),
+						React.createElement('input', { style: descriptionStyle, placeholder: 'description', name: 'description', type: 'text', value: value.description, onChange: self.changeItem }),
 						React.createElement(
 							'span',
 							{ style: requiredIcon },
