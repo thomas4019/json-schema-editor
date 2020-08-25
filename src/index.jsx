@@ -50,7 +50,7 @@ var SchemaString = React.createClass({
 		return state
 	},
 	componentWillReceiveProps: function(newProps) {
-		if (newProps.data.description) {
+		if (typeof newProps.data.description !== 'undefined') {
 			this.state.description = newProps.data.description;
 		}
 		this.setState(this.state);
@@ -134,7 +134,7 @@ var SchemaBoolean = React.createClass({
 		}
 	},
 	componentWillReceiveProps: function(newProps) {
-		if (newProps.data.description) {
+		if (typeof newProps.data.description !== 'undefined') {
 			this.state.description = newProps.data.description;
 		}
 		this.setState(this.state);
@@ -158,7 +158,7 @@ var SchemaNumber = React.createClass({
 		this.setState(this.state);
 	},
 	componentWillReceiveProps: function(newProps) {
-		if (newProps.data.description) {
+		if (typeof newProps.data.description !== 'undefined') {
 			this.state.description = newProps.data.description;
 		}
 		this.setState(this.state);
@@ -195,7 +195,6 @@ var SchemaArray = React.createClass({
 		return this.props.data;
 	},
 	change: function(event) {
-		console.log(this.state)
 		if (event.target.type == 'checkbox') {
 			this.state[event.target.name] = event.target.checked;
 		}
@@ -223,7 +222,7 @@ var SchemaArray = React.createClass({
 		this.onChange();
 	},
 	componentWillReceiveProps: function(newProps) {
-		if (newProps.data.description) {
+		if (typeof newProps.data.description !== 'undefined') {
 			this.state.description = newProps.data.description;
 		}
 		this.setState(this.state);
@@ -289,7 +288,7 @@ var SchemaObject = React.createClass({
 		if (!this.state || this.state.properties.length === 0) {
 			this.setState(this.propsToState(newProps))
 		}
-		if (newProps.data.description) {
+		if (typeof newProps.data.description !== 'undefined') {
 			this.state.description = newProps.data.description;
 			this.setState(this.state);
 		}

@@ -93,7 +93,7 @@
 			return state;
 		},
 		componentWillReceiveProps: function componentWillReceiveProps(newProps) {
-			if (newProps.data.description) {
+			if (typeof newProps.data.description !== 'undefined') {
 				this.state.description = newProps.data.description;
 			}
 			this.setState(this.state);
@@ -246,7 +246,7 @@
 			};
 		},
 		componentWillReceiveProps: function componentWillReceiveProps(newProps) {
-			if (newProps.data.description) {
+			if (typeof newProps.data.description !== 'undefined') {
 				this.state.description = newProps.data.description;
 			}
 			this.setState(this.state);
@@ -270,7 +270,7 @@
 			this.setState(this.state);
 		},
 		componentWillReceiveProps: function componentWillReceiveProps(newProps) {
-			if (newProps.data.description) {
+			if (typeof newProps.data.description !== 'undefined') {
 				this.state.description = newProps.data.description;
 			}
 			this.setState(this.state);
@@ -310,7 +310,6 @@
 			return this.props.data;
 		},
 		change: function change(event) {
-			console.log(this.state);
 			if (event.target.type == 'checkbox') {
 				this.state[event.target.name] = event.target.checked;
 			} else if (event.target.name == 'itemtype') {
@@ -336,7 +335,7 @@
 			this.onChange();
 		},
 		componentWillReceiveProps: function componentWillReceiveProps(newProps) {
-			if (newProps.data.description) {
+			if (typeof newProps.data.description !== 'undefined') {
 				this.state.description = newProps.data.description;
 			}
 			this.setState(this.state);
@@ -449,7 +448,7 @@
 			if (!this.state || this.state.properties.length === 0) {
 				this.setState(this.propsToState(newProps));
 			}
-			if (newProps.data.description) {
+			if (typeof newProps.data.description !== 'undefined') {
 				this.state.description = newProps.data.description;
 				this.setState(this.state);
 			}
