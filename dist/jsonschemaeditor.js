@@ -435,6 +435,7 @@
 			var data = props.data;
 			data.properties = data.properties || {};
 			data.required = data.required || [];
+			data.additionalProperties = data.additionalProperties || false;
 			data.propertyNames = [];
 			// convert from object to array
 			data.properties = Object.keys(data.properties).map(function (name) {
