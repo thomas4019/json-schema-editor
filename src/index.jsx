@@ -61,6 +61,7 @@ var SchemaString = React.createClass({
 	export: function() {
 		return {
 			type: 'string',
+            default: this.state.default,
 			description: this.state.description,
 			format: this.state.format,
 			pattern: !!this.state.pattern ? this.state.pattern : undefined,
@@ -130,6 +131,7 @@ var SchemaBoolean = React.createClass({
 		return {
 			type: 'boolean',
 			format: 'checkbox',
+			default: this.state.default,
 			description: this.state.description
 		}
 	},
@@ -214,6 +216,7 @@ var SchemaArray = React.createClass({
 			maxItems: this.state.maxItems,
 			uniqueItems: (this.state.uniqueItems ? true : undefined),
 			format: this.state.format,
+			default: this.state.default,
 			description: this.state.description,
 			type: 'array'
 		};
@@ -354,6 +357,7 @@ var SchemaObject = React.createClass({
 		});
 		return {
 			type: 'object',
+			default: this.state.default,
 			description: this.state.description,
 			additionalProperties: this.state.additionalProperties,
 			format: this.state.format,

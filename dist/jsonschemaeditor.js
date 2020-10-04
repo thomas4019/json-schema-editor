@@ -104,6 +104,7 @@
 		export: function _export() {
 			return {
 				type: 'string',
+				default: this.state.default,
 				description: this.state.description,
 				format: this.state.format,
 				pattern: !!this.state.pattern ? this.state.pattern : undefined,
@@ -242,6 +243,7 @@
 			return {
 				type: 'boolean',
 				format: 'checkbox',
+				default: this.state.default,
 				description: this.state.description
 			};
 		},
@@ -327,6 +329,7 @@
 				maxItems: this.state.maxItems,
 				uniqueItems: this.state.uniqueItems ? true : undefined,
 				format: this.state.format,
+				default: this.state.default,
 				description: this.state.description,
 				type: 'array'
 			};
@@ -511,6 +514,7 @@
 			});
 			return {
 				type: 'object',
+				default: this.state.default,
 				description: this.state.description,
 				additionalProperties: this.state.additionalProperties,
 				format: this.state.format,
