@@ -1,5 +1,7 @@
 # JSON Schema Editor
 
+### This project is no longer being actively maintained. I have ported it over to Vue.js in [vue-json-schema-editor](https://github.com/thomas4019/vue-json-schema-editor) and that is an improved and less buggy implementation.
+
 ![npm badge](https://badge.fury.io/js/json-schema-editor.svg)
 
 Generates HTML for creating and modifying [json schemas](http://json-schema.org). I created this because [json-editor](https://github.com/jdorn/json-editor) is not good at modifying schemas (using the [meta schema](http://json-schema.org/schema)) and couldn't find any other good UI for making json schemas.
