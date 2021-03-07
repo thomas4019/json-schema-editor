@@ -76,6 +76,7 @@
 		},
 		setValue: function setValue(data) {
 			var self = this;
+			self.element.children[0].remove();
 			this.react = ReactDOM.render(React.createElement(SchemaObject, { onChange: this.onChange, data: data }), self.element);
 		}
 	};
@@ -233,6 +234,30 @@
 		}
 	});
 
+	var SchemaAny = React.createClass({
+		displayName: 'SchemaAny',
+
+		getInitialState: function getInitialState() {
+			return this.props.data;
+		},
+		export: function _export() {
+			return {
+				type: ["string", "number", "object", "array", "boolean", "null"],
+				default: this.state.default,
+				description: this.state.description
+			};
+		},
+		componentWillReceiveProps: function componentWillReceiveProps(newProps) {
+			if (typeof newProps.data.description !== 'undefined') {
+				this.state.description = newProps.data.description;
+			}
+			this.setState(this.state);
+		},
+		render: function render() {
+			return React.createElement('div', null);
+		}
+	});
+
 	var SchemaBoolean = React.createClass({
 		displayName: 'SchemaBoolean',
 
@@ -295,14 +320,19 @@
 		}
 	});
 
+	function mapType(type) {
+		return Array.isArray(type) ? 'any' : type;
+	}
+
 	var mapping = function mapping(name, data, changeHandler) {
 		return {
+			any: React.createElement(SchemaAny, { onChange: changeHandler, ref: name, data: data }),
 			string: React.createElement(SchemaString, { onChange: changeHandler, ref: name, data: data }),
 			number: React.createElement(SchemaNumber, { onChange: changeHandler, ref: name, data: data }),
 			array: React.createElement(SchemaArray, { onChange: changeHandler, ref: name, data: data }),
 			object: React.createElement(SchemaObject, { onChange: changeHandler, ref: name, data: data }),
 			boolean: React.createElement(SchemaBoolean, { onChange: changeHandler, ref: name, data: data })
-		}[data.type];
+		}[mapType(data.type)];
 	};
 
 	var SchemaArray = React.createClass({
@@ -360,7 +390,7 @@
 				'Items Type:',
 				React.createElement(
 					'select',
-					{ name: 'itemtype', onChange: this.change, value: this.state.items.type },
+					{ name: 'itemtype', onChange: this.change, value: mapType(this.state.items.type) },
 					React.createElement(
 						'option',
 						{ value: 'string' },
@@ -385,6 +415,11 @@
 						'option',
 						{ value: 'boolean' },
 						'boolean'
+					),
+					React.createElement(
+						'option',
+						{ value: 'any' },
+						'any'
 					)
 				),
 				'minItems:  ',
@@ -584,7 +619,7 @@
 						React.createElement('input', { name: 'field', type: 'string', onChange: self.changeItem, value: name }),
 						React.createElement(
 							'select',
-							{ style: typeSelectStyle, name: 'type', onChange: self.changeItem, value: value.type },
+							{ style: typeSelectStyle, name: 'type', onChange: self.changeItem, value: mapType(value.type) },
 							React.createElement(
 								'option',
 								{ value: 'string' },
@@ -609,6 +644,11 @@
 								'option',
 								{ value: 'boolean' },
 								'boolean'
+							),
+							React.createElement(
+								'option',
+								{ value: 'any' },
+								'any'
 							)
 						),
 						React.createElement('input', { style: descriptionStyle, placeholder: 'description', name: 'description', type: 'text', value: value.description, onChange: self.changeItem }),

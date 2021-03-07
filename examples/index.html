@@ -72,14 +72,20 @@
         }
 
         function update() {
+            console.log('updating');
             console.log(window.schemaeditor.setValue({
                 "type": "object",
                 "properties": {
-                    "test": {
-                        "description": "The unique identifier for a product",
-                        "type": "string"
-                    }
-                }
+                  "test": {
+                    "description": "The unique identifier for a product",
+                    "type": "string"
+                  },
+                  "testany": {
+                    "description": "multi-type",
+                    "type": ["string", "number", "object", "array", "boolean", "null"]
+                  },
+                },
+                "required": []
             }));
         }
     </script>

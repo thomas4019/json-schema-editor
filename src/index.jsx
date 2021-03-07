@@ -32,6 +32,7 @@ JSONSchemaEditor.prototype = {
 	},
 	setValue: function(data) {
 		var self = this;
+		self.element.children[0].remove();
 		this.react = ReactDOM.render(
 			<SchemaObject onChange={this.onChange} data={data}/>,
 			self.element
@@ -123,6 +124,30 @@ var SchemaString = React.createClass({
 	}
 });
 
+var SchemaAny = React.createClass({
+	getInitialState: function() {
+		return this.props.data;
+	},
+	export: function() {
+		return {
+			type: ["string", "number", "object", "array", "boolean", "null"],
+			default: this.state.default,
+			description: this.state.description
+		}
+	},
+	componentWillReceiveProps: function(newProps) {
+		if (typeof newProps.data.description !== 'undefined') {
+			this.state.description = newProps.data.description;
+		}
+		this.setState(this.state);
+	},
+	render() {
+		return (
+			<div></div>
+		);
+	}
+})
+
 var SchemaBoolean = React.createClass({
 	getInitialState: function() {
 		return this.props.data;
@@ -181,15 +206,19 @@ var SchemaNumber = React.createClass({
 	}
 });
 
+function mapType(type) {
+	return Array.isArray(type) ? 'any' : type;
+}
 
 var mapping = function(name, data, changeHandler) {
 	return {
+		any: <SchemaAny onChange={changeHandler} ref={name} data={data}/>,
 		string: <SchemaString onChange={changeHandler} ref={name} data={data} />,
 		number: <SchemaNumber onChange={changeHandler} ref={name} data={data} />,
 		array: <SchemaArray onChange={changeHandler} ref={name} data={data}/>,
 		object: <SchemaObject onChange={changeHandler} ref={name} data={data}/>,
 		boolean: <SchemaBoolean onChange={changeHandler} ref={name} data={data}/>,
-	}[data.type];
+	}[mapType(data.type)];
 };
 
 var SchemaArray = React.createClass({
@@ -244,12 +273,13 @@ var SchemaArray = React.createClass({
 		return (
 			<div>
 				Items Type:
-				<select name="itemtype" onChange={this.change} value={this.state.items.type}>
+				<select name="itemtype" onChange={this.change} value={mapType(this.state.items.type)}>
 						<option value="string">string</option>
 						<option value="number">number</option>
 						<option value="array">array</option>
 						<option value="object">object</option>
 						<option value="boolean">boolean</option>
+						<option value="any">any</option>
 					</select>
 				minItems:  <input name="minItems" style={shortNumberStyle} type="number" onChange={self.change} value={self.state.minItems}  />
 				maxItems:  <input name="maxItems" style={shortNumberStyle} type="number" onChange={self.change} value={self.state.maxItems}  />
@@ -423,12 +453,13 @@ var SchemaObject = React.createClass({
  			var optionForm = mapping('item' + index, copiedState, self.onChange);
 			return <div data-index={index} style={fieldStyle} key={index}>
 				<input name="field" type="string" onChange={self.changeItem} value={name} />
-				<select style={typeSelectStyle} name="type" onChange={self.changeItem} value={value.type}>
+				<select style={typeSelectStyle} name="type" onChange={self.changeItem} value={mapType(value.type)}>
 					<option value="string">string</option>
 					<option value="number">number</option>
 					<option value="array">array</option>
 					<option value="object">object</option>
 					<option value="boolean">boolean</option>
+					<option value="any">any</option>
 				</select>
 				<input style={descriptionStyle} placeholder="description" name="description" type="text" value={value.description} onChange={self.changeItem} />
 				<span style={requiredIcon}>*</span><input name={name} type="checkbox" onChange={self.changeRequired} checked={self.state.required.indexOf(name) != -1} />

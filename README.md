@@ -62,3 +62,5 @@ Here is what the [product schema](http://json-schema.org/example1.html) example 
 * definitions
 * patternProperties
 * allOf, anyOf, oneOf
+
+[Online Schema Tester](https://www.jsonschemavalidator.net/)
