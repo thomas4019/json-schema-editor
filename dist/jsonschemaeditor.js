@@ -76,7 +76,8 @@
 		},
 		setValue: function setValue(data) {
 			var self = this;
-			self.element.children[0].remove();
+			// uncommenting this makes the update work on the test page
+			// self.element.children[0].remove();
 			this.react = ReactDOM.render(React.createElement(SchemaObject, { onChange: this.onChange, data: data }), self.element);
 		}
 	};

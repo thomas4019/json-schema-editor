@@ -1,6 +1,6 @@
 {
   "name": "json-schema-editor",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "description": "React based editor for JSON Schemas",
   "main": "dist/jsonschemaeditor.js",
   "dependencies": {},
